@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Voice Interaction with ADIIVA</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 700px; margin: 40px auto; padding: 0 20px; }
+    h1 { color: #3498db; }
+    .chat-history { border: 1px solid #ccc; padding: 15px; min-height: 200px; background: #f2f2f2; margin-bottom: 10px; max-height: 300px; overflow-y: auto; }
+    .message { margin: 5px 0; }
+    .role-user { color: #2c3e50; font-weight: bold; }
+    .role-ai { color: #27ae60; font-weight: bold; }
+    button { padding: 10px 20px; font-size: 16px; background-color: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px; }
+    button:disabled { background-color: #aaa; cursor: not-allowed; }
+    a { display: inline-block; margin-top: 15px; text-decoration: none; color: #3498db; }
+  </style>
+</head>
+<body>
+  <h1>Voice Interaction with ADIIVA</h1>
+
+  <div class="chat-history" id="chatHistory">
+    {% if history %}
+      {% for message in history %}
+        <div class="message">
+          <span class="role-{{ message.role }}">{{ message.role.capitalize() }}:</span>
+          <span>{{ message.text }}</span>
+        </div>
+      {% endfor %}
+    {% endif %}
+  </div>
+
+  <button id="recordBtn">Start Recording</button>
+  <button id="stopBtn" disabled>Stop Recording</button>
+  <p id="status"></p>
+
+  <h3>Transcribed Text:</h3>
+  <p id="transcript">{{ transcript or '' }}</p>
+  <h3>Assistant Response:</h3>
+  <p id="response">{{ response or '' }}</p>
+
+  <a href="/">← Back to Home</a>
+
+  <script>
+    let recorder;
+    let audioChunks = [];
+
+    const recordBtn = document.getElementById('recordBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const status = document.getElementById('status');
+    const transcriptElem = document.getElementById('transcript');
+    const responseElem = document.getElementById('response');
+
+    recordBtn.onclick = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        recorder = new MediaRecorder(stream);
+        audioChunks = [];
+
+        recorder.ondataavailable = e => {
+          audioChunks.push(e.data);
+        };
+
+        recorder.onstart = () => {
+          status.textContent = 'Recording...';
+          recordBtn.disabled = true;
+          stopBtn.disabled = false;
+        };
+
+        recorder.onstop = async () => {
+          status.textContent = 'Processing...';
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          const formData = new FormData();
+          formData.append('file', audioBlob, 'voice.webm');
+
+          try {
+            const response = await fetch('/voice', {
+              method: 'POST',
+              body: formData
+            });
+            const data = await response.json();
+            transcriptElem.textContent = data.transcript || '';
+            responseElem.textContent = data.answer || '';
+            status.textContent = 'Done';
+          } catch (error) {
+            status.textContent = 'Error: ' + error.message;
+          }
+
+          recordBtn.disabled = false;
+          stopBtn.disabled = true;
+        };
+
+        recorder.start();
+      } catch (err) {
+        status.textContent = 'Error accessing microphone: ' + err.message;
+      }
+    };
+
+    stopBtn.onclick = () => {
+      if (recorder && recorder.state === "recording") {
+        recorder.stop();
+      }
+    };
+  </script>
+</body>
+</html>

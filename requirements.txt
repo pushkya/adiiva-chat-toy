@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+jinja2
+SpeechRecognition
+pydub
+playsound
+pyttsx3
+huggingface-hub
+requests
+python-dotenv
+transformers
+torch
+httpx
+python-multipart
