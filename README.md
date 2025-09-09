@@ -9,6 +9,7 @@
 9. Before running the project make sure you have Huggingface API key. If you dont have one create a new key here with *Write* permission: https://huggingface.co/settings/tokens (Create new account if you dont have). Save the API key in a notepad.
 10. Open docker desktop to start your docker engine.  
 11. Once you get the API key build your docker using: *cd adiiva-chat-toy* , *docker build -t adiiva-chat-toy .*
-12. Once the build is complete run the container: *docker run --env HF_API_TOKEN=YOUR_API_KEY --env LLM_PROVIDER=huggingface -p 8000:8000 adiiva-chat-toy*
+12. If you face DNS issues, open Control Panel->Network and Sharing->Change adapter settings->Internet Protocol Version 4. Click on it and hit Properties. Add Prefered DNS as 8.8.8.8 and Alternate DNS as 1.1.1.1. Once added run the build command again
+13. Once the build is complete run the container: *docker run --env HF_API_TOKEN=YOUR_API_KEY --env LLM_PROVIDER=huggingface -p 8000:8000 adiiva-chat-toy*
    
 
